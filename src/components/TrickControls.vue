@@ -3,17 +3,16 @@ import { useState } from "@/composables/state";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import RadioButton from "primevue/radiobutton";
-import { computed, ref, watchEffect } from "vue";
+import { ref } from "vue";
 
 const showDialog = ref(false);
 function openDialog() {
-  lastTrickPlayer.value = null;
   p0.value = { ...initial };
   showDialog.value = true;
 }
 
 type PlayerInput = {
-  "last-trick": boolean | null;
+  "last-trick": number;
   ace: number;
   ten: number;
   king: number;
@@ -22,14 +21,8 @@ type PlayerInput = {
 };
 type CardKey = Exclude<keyof PlayerInput, "last-trick">;
 
-const lastTrickPlayer = ref<0 | 1 | null>(null);
-watchEffect(() => {
-  if (lastTrickPlayer.value === null) return;
-  p0.value["last-trick"] = lastTrickPlayer.value === 0;
-});
-
 const initial = {
-  "last-trick": null,
+  "last-trick": 1,
   ace: 4,
   ten: 4,
   king: 4,
@@ -38,17 +31,6 @@ const initial = {
 };
 
 const p0 = ref<PlayerInput>(initial);
-const p1 = computed<PlayerInput>(() => {
-  const { "last-trick": lastTrick, ace, ten, king, queen, jack } = p0.value;
-  return {
-    "last-trick": lastTrick === null ? null : !lastTrick,
-    ace: 8 - ace,
-    ten: 8 - ten,
-    king: 8 - king,
-    queen: 8 - queen,
-    jack: 8 - jack,
-  };
-});
 
 function increment(key: CardKey) {
   const curr = p0.value[key];
@@ -75,13 +57,6 @@ function submit() {
     type: "trick",
     player: 0,
     ...p0.value,
-    "last-trick": Boolean(p0.value["last-trick"]),
-  });
-  pushEvent({
-    type: "trick",
-    player: 1,
-    ...p1.value,
-    "last-trick": Boolean(p1.value["last-trick"]),
   });
   showDialog.value = false;
 }
@@ -99,16 +74,16 @@ function submit() {
     >
       <div class="modal">
         <RadioButton
-          v-model="lastTrickPlayer"
+          v-model="p0['last-trick']"
           name="last-trick"
-          :value="0"
+          :value="1"
           :pt="{ root: { style: { marginInline: 'auto' } } }"
         />
         <label>Last Trick</label>
         <RadioButton
-          v-model="lastTrickPlayer"
+          v-model="p0['last-trick']"
           name="last-trick"
-          :value="1"
+          :value="0"
           :pt="{ root: { style: { marginInline: 'auto' } } }"
         />
 
@@ -122,7 +97,7 @@ function submit() {
           />
           <label>{{ label[key] }}</label>
           <Button
-            :label="String(p1[key])"
+            :label="String(8 - p0[key])"
             icon="pi pi-plus"
             icon-pos="right"
             severity="secondary"
@@ -130,12 +105,7 @@ function submit() {
           />
         </template>
 
-        <Button
-          class="submit"
-          label="Score"
-          :disabled="lastTrickPlayer === null"
-          @click="submit"
-        />
+        <Button class="submit" label="Score" @click="submit" />
       </div>
     </Dialog>
   </div>

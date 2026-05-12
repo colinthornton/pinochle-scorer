@@ -27,10 +27,14 @@ const { scores, pushEvent, canUndo, undoEvent, canRedo, redoEvent } =
       />
     </ButtonGroup>
     <MeldControls
-      @meld="(meld) => pushEvent({ type: 'meld', player: 0, meld })"
+      @meld="
+        (meld, subtype) => pushEvent({ type: 'meld', player: 0, meld, subtype })
+      "
     />
     <MeldControls
-      @meld="(meld) => pushEvent({ type: 'meld', player: 1, meld })"
+      @meld="
+        (meld, subtype) => pushEvent({ type: 'meld', player: 1, meld, subtype })
+      "
     />
     <TrickControls class="trick-controls" />
     <!-- <EventList /> -->
