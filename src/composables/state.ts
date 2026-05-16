@@ -1,4 +1,5 @@
-import { computed, readonly, ref } from "vue";
+import { computed, readonly } from "vue";
+import { useLocalStorage } from "./local_storage";
 
 export type PinochleMeld =
   | "run"
@@ -67,9 +68,12 @@ export type PinochleEvent =
     };
 export type PinochleEventScored = PinochleEvent & { score: number };
 
-const events = ref<PinochleEventScored[]>([]);
+const events = useLocalStorage<PinochleEventScored[]>("state_events", []);
 
-const undoHistory = ref<PinochleEventScored[]>([]);
+const undoHistory = useLocalStorage<PinochleEventScored[]>(
+  "state_undo_history",
+  [],
+);
 function pushEvent(event: PinochleEvent) {
   let scoredEvent: PinochleEventScored | null = null;
   if (event.type === "meld") {
@@ -90,7 +94,9 @@ function pushEvent(event: PinochleEvent) {
     scoredEvent = { ...event, score };
   }
   if (!scoredEvent) return;
-  undoHistory.value = [];
+  if (undoHistory.value.length > 0) {
+    undoHistory.value = [];
+  }
   events.value.push(scoredEvent);
 }
 const canUndo = computed(() => events.value.length > 0);
